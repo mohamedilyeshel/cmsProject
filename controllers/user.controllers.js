@@ -3,39 +3,31 @@ const bcrypt = require("bcryptjs");
 
 const createUser = async (req, res) => 
 {
-    const userR = req.body.verifiedUser;
-    if(userR.userRole !== "A")
-    {
-        return res.status(403).json("You don't have the access to do this");
-    }
-
-    const existEmail = await userModel.findOne({email : req.body.email});
-    if(existEmail)
-    {
-        return res.status(422).json("Email exist!");
-    }
-
-    const existUser = await userModel.findOne({username : req.body.username});
-    if(existUser)
-    {
-        return res.status(422).json("username exist!");
-    }
-    
-    const salt = await bcrypt.genSalt(16);
-    const hashPass = await bcrypt.hash(req.body.password, salt);
-
-	const newUser = new userModel({
-        fullName : req.body.fullName ,
-        username : req.body.username ,
-        email : req.body.email ,
-        password: hashPass ,
-        birthDate : req.body.birthDate ,
-        profilePic : req.body.profilePic ,
-        userRole : req.body.userRole
-	});
-
 	try 
     {
+        const existEmail = await userModel.findOne({email : req.body.email});
+        if(existEmail)
+        {
+            return res.status(422).json("Email exist!");
+        }
+    
+        const existUser = await userModel.findOne({username : req.body.username});
+        if(existUser)
+        {
+            return res.status(422).json("username exist!");
+        }
+        
+        const salt = await bcrypt.genSalt(16);
+        const hashPass = await bcrypt.hash(req.body.password, salt);
+    
+        const newUser = new userModel({
+            firstName : req.body.firstName,
+            lastName : req.body.lastName,
+            username : req.body.username,
+            email : req.body.email,
+            password: hashPass,
+        });
+
         const saveUser = await newUser.save();
         return res.status(200).json(saveUser);
 	} 
@@ -47,12 +39,6 @@ const createUser = async (req, res) =>
 
 const getUsers = async (req, res) => 
 {
-    const userR = req.body.verifiedUser;
-    if(userR.userRole !== "A")
-    {
-        return res.status(403).json("You don't have the access to do this");
-    }
-
 	try
     {
 		const users = await userModel.find();
@@ -66,17 +52,9 @@ const getUsers = async (req, res) =>
 
 const getUser = async (req, res) =>
 {
-    const userR = req.body.verifiedUser;
-    if(userR.userRole !== "A")
-    {
-        return res.status(403).json("You don't have the access to do this");
-    }
-
-	const id = req.params.userId;
 	try 
     {
-		const user = await userModel.findById(id);
-		return res.status(200).json(user);
+		return res.status(200).json(req.user);
 	} 
     catch (err) 
     {
@@ -86,13 +64,7 @@ const getUser = async (req, res) =>
 
 const deleteUser = async (req, res) => 
 {
-    const userR = req.body.verifiedUser;
-    if(userR.userRole !== "A")
-    {
-        return res.status(403).json("You don't have the access to do this");
-    }
-
-	const id = req.params.userId;
+	const id = req.user._id;
 	try 
     {
 		const user = await userModel.findByIdAndDelete(id);
@@ -106,27 +78,9 @@ const deleteUser = async (req, res) =>
 
 const updateUser = async (req, res) => 
 {
-    const userR = req.body.verifiedUser;
-    if(userR.userRole !== "A")
-    {
-        return res.status(403).json("You don't have the access to do this");
-    }
-
-	const id = req.params.userId;
+	const id = req.user._id;
 	try 
     {
-        const existEmail = await userModel.findOne({email : req.body.email});
-        if(existEmail)
-        {
-            return res.status(422).json("Email exist!");
-        }
-
-        const existUser = await userModel.findOne({username : req.body.username});
-        if(existUser)
-        {
-            return res.status(422).json("username exist!");
-        }
-
 		const user = await userModel.findByIdAndUpdate(id, req.body, {
 			new: true,
 		});

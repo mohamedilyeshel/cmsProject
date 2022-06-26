@@ -19,9 +19,9 @@ const Login = async (req, res) =>
         }
 
         const token = jwt.sign(
-            {_id : existUsername.id, username : existUsername.username, fullName : existUsername.fullName, userRole : existUsername.userRole},
+            {_id : existUsername._id, username : existUsername.username, email : existUsername.email},
             "ahawamdp",
-            {expiresIn : "60s"}
+            {expiresIn : "2 days"}
         );
 
         return res.status(200).json(token);
@@ -52,13 +52,11 @@ const Register = async (req, res) =>
         const hashPass = await bcrypt.hash(req.body.password, salt);
         
         const newUser = new userModel({
-            fullName : req.body.fullName ,
-            username : req.body.username ,
-            email : req.body.email ,
-            password: hashPass ,
-            birthDate : req.body.birthDate ,
-            profilePic : req.body.profilePic ,
-            userRole : req.body.userRole
+            firstName : req.body.firstName,
+            lastName : req.body.lastName,
+            username : req.body.username,
+            email : req.body.email,
+            password: hashPass,
         });
 
         const saveUser = await newUser.save();
