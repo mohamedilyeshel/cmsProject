@@ -11,7 +11,7 @@ module.exports = function (req, res, next)
     try
     {
         const verifiedUser = jwt.verify(token, "ahawamdp");
-        req.body.verifiedUser = verifiedUser; // tkhalik you can pass el token maa el request bech tekhou acces lel les données li mawjoudin fil payload 
+        req.verifiedUser = verifiedUser; // tkhalik you can pass el token maa el request bech tekhou acces lel les données li mawjoudin fil payload 
         next(); // middlewares are function that can be executed in middle of work then do the next function to execute and complete the normal funciton
     }
     catch(err)
