@@ -5,13 +5,10 @@ const createStory = async (req, res) =>
 	try 
     {
         const newstory = new storyModel({
+			title : req.body.title,
             content: req.body.content,
-            publishedAt: req.body.publishedAt,
-            readTime: req.body.readTime,
             tags: req.body.tags,
-            author: req.body.author,
-            blog: req.body.blog,
-            isDraft: req.body.isDraft,
+            author: req.verifiedUser._id
         });
 
         const savestory = await newstory.save();
@@ -78,8 +75,29 @@ const updateStory = async (req, res) =>
 	}
 };
 
+const publishStory = async (req, res) => {
+	const id = req.story._id;
+	try {
+		const story = await storyModel.findByIdAndUpdate(
+			id,
+			{
+				publishAt : new Date,
+				isDraft : false,
+				blog : req.blog._id,
+			},
+			{
+				new: true,
+			}
+		);
+		return res.status(200).json(story);
+	} catch (err) {
+		return res.status(500).json(err);
+	}
+};
+
 module.exports.createStory = createStory;
 module.exports.getStory = getStory;
 module.exports.getStories = getStories;
 module.exports.deleteStory = deleteStory;
 module.exports.updateStory = updateStory;
+module.exports.publishStory = publishStory;

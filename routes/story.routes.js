@@ -23,7 +23,7 @@ router.param("story", async (req, res, next, id) =>
     }
 });
 
-router.post("/",storyCont.createStory);
+router.post("/", verifyToken, storyCont.createStory);
 router.get("/",storyCont.getStories);
 router.get("/:story",storyCont.getStory);
 router.put("/:story",storyCont.updateStory);
