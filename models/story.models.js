@@ -37,7 +37,8 @@ StorySchema.methods.slugify = function (text)
 	this.slug = slug(text) + "-" + ((Math.random() * Math.pow(36, 6)) | 0).toString(36);
 };
 
-StorySchema.methods.calculateReadTime = function () {
+StorySchema.methods.calculateReadTime = function () 
+{
 	const wordsPerMinute = 200;
 	const noOfWords = this.content.split(/\s/g).length;
 	const minutes = noOfWords / wordsPerMinute;

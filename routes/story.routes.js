@@ -1,4 +1,5 @@
 const storyCont = require("../controllers/story.controllers");
+const isStoryOwner = require("../middleware/isStoryOwner");
 const verifyToken = require("../middleware/verifyToken");
 const storyModel = require("../models/story.models");
 const router = require("express").Router();
@@ -26,7 +27,7 @@ router.param("story", async (req, res, next, id) =>
 router.post("/", verifyToken, storyCont.createStory);
 router.get("/",storyCont.getStories);
 router.get("/:story",storyCont.getStory);
-router.put("/:story",storyCont.updateStory);
+router.put("/:story", verifyToken, isStoryOwner, storyCont.updateStory);
 router.delete("/:story",storyCont.deleteStory);
 
 module.exports = router;

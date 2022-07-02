@@ -67,6 +67,7 @@ const updateStory = async (req, res) =>
 		const story = await storyModel.findByIdAndUpdate(id, req.body, {
 			new: true,
 		});
+		story.calculateReadTime();
 		return res.status(200).json(story);
 	} 
     catch (err) 
