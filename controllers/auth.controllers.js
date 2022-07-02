@@ -1,26 +1,36 @@
 const userModel = require("../models/user.models");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const isEmail = require("validator/lib/isEmail");
 
 const Login = async (req, res) =>
 {
+    let existUser = null;
    try
    {
-        const existUsername = await userModel.findOne({username : req.body.username});
-        if(!existUsername)
+        if(isEmail(req.body.loginInfo))
         {
-            return res.status(422).json("Username doesnt exist!");
+            existUser = await userModel.findOne({email : req.body.loginInfo});
+        }
+        else
+        {
+            existUser = await userModel.findOne({username : req.body.loginInfo});
         }
 
-        const verifiedPassword = await bcrypt.compare(req.body.password, existUsername.password);
+        if(!existUser)
+        {
+            return res.status(401).json("User not found");
+        }
+
+        const verifiedPassword = await bcrypt.compare(req.body.password, existUser.password);
         if(!verifiedPassword)
         {
             return res.status(422).json("Wrong Password!");
         }
 
         const token = jwt.sign(
-            {_id : existUsername._id, username : existUsername.username, email : existUsername.email},
-            "ahawamdp",
+            {_id : existUser._id, username : existUser.username, email : existUser.email},
+            process.env.TOKEN_KEY,
             {expiresIn : "2 days"}
         );
 

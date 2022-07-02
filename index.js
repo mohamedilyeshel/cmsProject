@@ -2,9 +2,13 @@
 const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
+require("dotenv").config();
+const morgan = require("morgan");
+const helmet = require("helmet");
+const compression = require("compression");
 
 // DB connection
-mongoose.connect("mongodb://localhost:27017/cmsProject");
+mongoose.connect(process.env.MONGODB_URL);
 mongoose.connection.on("connected", () => {console.log("Connection with db good")});
 mongoose.connection.on("error", (err) => {console.log("Connection with db failed", err)});
 
@@ -21,16 +25,19 @@ const routerComment = require("./routes/comment.routes");
 // middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(morgan("dev"));
+app.use(helmet());
+app.use(compression());
 
 // routes middleware
-app.use("/", routerAuth);
-app.use("/users", routerUser);
-app.use("/blogs", routerBlog);
-app.use("/tags", routerTag);
-app.use("/stories", routerStory);
-app.use("/reactions", routerReaction);
-app.use("/follows", routerFollow);
-app.use("/comments", routerComment);
+app.use("/api/", routerAuth);
+app.use("/api/users", routerUser);
+app.use("/api/blogs", routerBlog);
+app.use("/api/tags", routerTag);
+app.use("/api/stories", routerStory);
+app.use("/api/reactions", routerReaction);
+app.use("/api/follows", routerFollow);
+app.use("/api/comments", routerComment);
 
 // server listening
 const port = 8000;
