@@ -29,10 +29,13 @@ const Login = async (req, res) =>
         }
 
         const token = jwt.sign(
-            {_id : existUser._id, username : existUser.username, email : existUser.email},
+            {_id : existUser._id, username : existUser.username, email : existUser.email, isAdmin : existUser.isAdmin},
             process.env.TOKEN_KEY,
             {expiresIn : "2 days"}
         );
+
+        existUser.lastLogin = Date.now();
+        existUser.save();
 
         return res.status(200).json(token);
    }

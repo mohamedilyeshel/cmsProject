@@ -68,6 +68,7 @@ const updateStory = async (req, res) =>
 			new: true,
 		});
 		story.calculateReadTime();
+		story.save();
 		return res.status(200).json(story);
 	} 
     catch (err) 

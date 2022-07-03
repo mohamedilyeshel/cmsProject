@@ -50,6 +50,7 @@ router.param("story", async (req, res, next, id) =>
 router.get("/", blogCont.getBlogs);
 router.get("/me", verifyToken, blogCont.getOwnedBlog);
 router.get("/:blog", blogCont.getBlog);
+router.get("/:blog/stories", blogCont.getBlogStories);
 
 router.post("/:blog/owners", verifyToken, isBlogOwner, blogCont.addOwnerToBlog);
 router.patch("/:blog/owners", verifyToken, isBlogOwner, blogCont.removeOwnerFromBlog);

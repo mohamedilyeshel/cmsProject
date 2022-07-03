@@ -1,5 +1,6 @@
 const blogModel = require("../models/blog.models");
 const userModels = require("../models/user.models");
+const storyModels = require("../models/story.models");
 
 const createBlog = async (req, res) => 
 {
@@ -132,6 +133,20 @@ const removeOwnerFromBlog = async (req, res) => {
 	}
 };
 
+const getBlogStories = async (req, res) => 
+{
+	const id = req.blog._id;
+	try
+	{
+		const blogStories = await storyModels.find({blog : id});
+		return res.status(200).json(blogStories);
+	}
+	catch(err)
+	{
+		return res.status(500).json(err);
+	}
+}
+
 module.exports.createBlog = createBlog;
 module.exports.getBlog = getBlog;
 module.exports.getBlogs = getBlogs;
@@ -140,3 +155,4 @@ module.exports.updateBlog = updateBlog;
 module.exports.getOwnedBlog = getOwnedBlog;
 module.exports.addOwnerToBlog = addOwnerToBlog;
 module.exports.removeOwnerFromBlog = removeOwnerFromBlog;
+module.exports.getBlogStories = getBlogStories;
