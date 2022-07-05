@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const slug = require("slug");
 const storyModel = require("../models/story.models");
+const followModel = require("../models/follow.models");
 
 const BlogSchema = new mongoose.Schema(
 	{
@@ -25,6 +26,16 @@ BlogSchema.pre("findOneAndDelete", async function(next)
 	{
 		await storyModel.findByIdAndDelete(s._id);
 	}
+
+	await followModel.deleteMany
+	({
+		following : 
+		{
+			entity : this.getQuery()["_id"],
+			model : "Blog"
+		}
+	});
+	
 	next();
 });
 

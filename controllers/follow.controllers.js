@@ -5,7 +5,7 @@ const createFollow = async (req, res) =>
 	try 
     {
         const newfollow = new followModel({
-            follower : req.body.follower,
+            follower : req.verifiedUser._id,
             following : req.body.following
         });
 
