@@ -5,13 +5,25 @@ const createComment = async (req, res) =>
 	try 
     {
         const newcomment = new commentModel({
-            story: req.body.story,
+            story: req.story._id,
             content: req.body.content,
-            replies: req.body.replies,
-            author: req.body.author,
+            author: req.verifiedUser._id,
         });
 
-        const savecomment = await newcomment.save();
+        let savecomment = await newcomment.save();
+
+		if(req.comment)
+		{
+			await req.comment.addReply(savecomment._id); 
+			
+			savecomment = await req.comment.populate(
+				{
+					path : "replies",
+					select : "content author story"
+				}
+			);
+		}
+
         return res.status(200).json(savecomment);
 	} 
     catch (err)
@@ -50,7 +62,12 @@ const deleteComment = async (req, res) =>
 	const id = req.comment._id;
 	try 
     {
-		const comment = await commentModel.findByIdAndDelete(id);
+		for (let r of req.comment.replies)
+		{
+			await commentModel.findByIdAndDelete(r.toString());
+		}
+
+		const comment = await commentModel.findOneAndDelete(id);
 		return res.status(200).json(comment);
 	} 
     catch (err) 
