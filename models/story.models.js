@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const slug = require("slug");
+const commentModel = require("../models/comment.models");
 
 const StorySchema = new mongoose.Schema(
 	{
@@ -22,12 +23,17 @@ const StorySchema = new mongoose.Schema(
 	{ timestamps: true }
 );
 
+StorySchema.pre("findOneAndDelete", async function(next){
+	await commentModel.deleteMany({story : this.getQuery()["_id"]});
+	next();
+});
+
 StorySchema.pre("validate", function (next) 
 {
+	this.calculateReadTime();
 	if (this.title) 
 	{
 		this.slugify(this.title);
-		this.calculateReadTime();
 	}
 	next();
 });

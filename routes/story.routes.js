@@ -51,7 +51,7 @@ router.post("/", verifyToken, storyCont.createStory);
 router.get("/",storyCont.getStories);
 router.get("/:story",storyCont.getStory);
 router.put("/:story", verifyToken, isStoryOwner, storyCont.updateStory);
-router.delete("/:story",storyCont.deleteStory);
+router.delete("/:story", verifyToken, isStoryOwner, storyCont.deleteStory);
 
 router.post("/:story/comments/", verifyToken, commentCont.createComment);
 router.post("/:story/comments/:comment", verifyToken, commentCont.createComment);

@@ -66,6 +66,7 @@ const updateStory = async (req, res) =>
     {
 		const story = await storyModel.findByIdAndUpdate(id, req.body, {
 			new: true,
+			runValidators: true,
 		});
 		story.calculateReadTime();
 		story.save();
