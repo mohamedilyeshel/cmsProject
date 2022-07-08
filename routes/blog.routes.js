@@ -1,11 +1,14 @@
 const blogCont = require("../controllers/blog.controllers");
 const isBlogOwner = require("../middleware/isBlogOwner");
 const isStoryOwner = require("../middleware/isStoryOwner");
+const isFollowingBlog = require("../middleware/isFollowingBlog");
+const notBlogOwner = require("../middleware/notBlogOwner");
 const verifyToken = require("../middleware/verifyToken");
 const blogModel = require("../models/blog.models");
 const storyModel = require("../models/story.models");
 const router = require("express").Router();
 const storyCont = require("../controllers/story.controllers");
+const followCont = require("../controllers/follow.controllers");
 
 router.param("blog", async (req, res, next, id) =>
 {
@@ -51,6 +54,8 @@ router.get("/", blogCont.getBlogs);
 router.get("/me", verifyToken, blogCont.getOwnedBlog);
 router.get("/:blog", blogCont.getBlog);
 router.get("/:blog/stories", blogCont.getBlogStories);
+
+router.get("/:blog/follow", verifyToken, notBlogOwner, isFollowingBlog, followCont.followBlog);
 
 router.post("/:blog/owners", verifyToken, isBlogOwner, blogCont.addOwnerToBlog);
 router.patch("/:blog/owners", verifyToken, isBlogOwner, blogCont.removeOwnerFromBlog);

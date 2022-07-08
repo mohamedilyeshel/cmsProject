@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const slug = require("slug");
 const commentModel = require("../models/comment.models");
+const reacitonModel = require("../models/reaction.models");
 
 const StorySchema = new mongoose.Schema(
 	{
@@ -25,6 +26,8 @@ const StorySchema = new mongoose.Schema(
 
 StorySchema.pre("findOneAndDelete", async function(next){
 	await commentModel.deleteMany({story : this.getQuery()["_id"]});
+	await reactionModel.deleteMany({story : this.getQuery()["_id"]});
+	
 	next();
 });
 

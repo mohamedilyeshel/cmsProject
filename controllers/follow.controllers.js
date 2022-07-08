@@ -1,16 +1,56 @@
 const followModel = require("../models/follow.models");
 
-const createFollow = async (req, res) => 
+const followBlog = async (req, res) => 
 {
 	try 
     {
-        const newfollow = new followModel({
-            follower : req.verifiedUser._id,
-            following : req.body.following
-        });
+		if(req.isFollowing)
+		{
+			return res.status(200).json(req.isFollowing);
+		}
+		else
+		{
+			const newfollow = new followModel({
+				follower : req.verifiedUser._id,
+				following : 
+				 {
+					entity : req.blog._id,
+					model : "Blog"
+				 }
+			});
+	
+			const savefollow = await newfollow.save();
+			return res.status(200).json(savefollow);
+		}
+	} 
+    catch (err)
+    {
+		return res.status(500).json(err);
+	}
+};
 
-        const savefollow = await newfollow.save();
-        return res.status(200).json(savefollow);
+const followTag = async (req, res) => 
+{
+	try 
+    {
+		if(req.isFollowing)
+		{
+			return res.status(200).json(req.isFollowing);
+		}
+		else
+		{
+			const newfollow = new followModel({
+				follower : req.verifiedUser._id,
+				following : 
+				 {
+					entity : req.tag._id,
+					model : "Tag"
+				 }
+			});
+	
+			const savefollow = await newfollow.save();
+			return res.status(200).json(savefollow);
+		}
 	} 
     catch (err)
     {
@@ -73,7 +113,8 @@ const updateFollow = async (req, res) =>
 	}
 };
 
-module.exports.createFollow = createFollow;
+module.exports.followTag = followTag;
+module.exports.followBlog = followBlog;
 module.exports.getFollow = getFollow;
 module.exports.getFollows = getFollows;
 module.exports.deleteFollow = deleteFollow;

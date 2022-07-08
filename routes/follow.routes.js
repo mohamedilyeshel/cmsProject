@@ -23,7 +23,6 @@ router.param("follow", async (req, res, next, id) =>
     }
 });
 
-router.post("/", verifyToken ,followCont.createFollow);
 router.get("/",followCont.getFollows);
 router.get("/:follow",followCont.getFollow);
 router.put("/:follow",followCont.updateFollow);
