@@ -29,11 +29,7 @@ BlogSchema.pre("findOneAndDelete", async function(next)
 
 	await followModel.deleteMany
 	({
-		following : 
-		{
-			entity : this.getQuery()["_id"],
-			model : "Blog"
-		}
+		"following.entity" : this.getQuery()["_id"],
 	});
 	
 	next();

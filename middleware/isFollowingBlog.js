@@ -1,7 +1,7 @@
 const followModel = require("../models/follow.models");
 module.exports = async function (req, res, next)
 {
-    const isFollowing = await followModel.find
+    const isFollowing = await followModel.findOne
     ({
         follower : req.verifiedUser._id,
         following : 
@@ -11,7 +11,7 @@ module.exports = async function (req, res, next)
         }
     });
 
-    if(isFollowing.length > 0)
+    if(isFollowing)
     {
         req.isFollowing = true;
     }
