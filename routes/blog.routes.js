@@ -10,61 +10,67 @@ const router = require("express").Router();
 const storyCont = require("../controllers/story.controllers");
 const followCont = require("../controllers/follow.controllers");
 
-router.param("blog", async (req, res, next, id) =>
-{
-    try
-    {
-        const blog = await blogModel.findById(id);
-        
-        if(!blog)
-        {
-            return res.status(404).json("blog not found");
-        }
+router.param("blog", async (req, res, next, id) => {
+  try {
+    const blog = await blogModel.findById(id);
 
-        req.blog = blog;
-        next();
+    if (!blog) {
+      return res.status(404).json("blog not found");
     }
-    catch (err)
-    {
-        return res.status(500).json(err);
-    }
+
+    req.blog = blog;
+    next();
+  } catch (err) {
+    return res.status(500).json(err);
+  }
 });
 
-router.param("story", async (req, res, next, id) =>
-{
-    try
-    {
-        const story = await storyModel.findById(id);
-        
-        if(!story)
-        {
-            return res.status(404).json("story not found");
-        }
+router.param("story", async (req, res, next, id) => {
+  try {
+    const story = await storyModel.findById(id);
 
-        req.story = story;
-        next();
+    if (!story) {
+      return res.status(404).json("story not found");
     }
-    catch (err)
-    {
-        return res.status(500).json(err);
-    }
+
+    req.story = story;
+    next();
+  } catch (err) {
+    return res.status(500).json(err);
+  }
 });
 
 router.get("/", blogCont.getBlogs);
 router.get("/me", verifyToken, blogCont.getOwnedBlog);
-router.get("/:blog", blogCont.getBlog);
+router.get("/:blog", verifyToken, blogCont.getBlog);
 router.get("/:blog/stories", blogCont.getBlogStories);
 
-router.get("/:blog/follow", verifyToken, notBlogOwner, isFollowingBlog, followCont.followBlog);
+router.get(
+  "/:blog/follow",
+  verifyToken,
+  notBlogOwner,
+  isFollowingBlog,
+  followCont.followBlog
+);
 
 router.post("/:blog/owners", verifyToken, isBlogOwner, blogCont.addOwnerToBlog);
-router.patch("/:blog/owners", verifyToken, isBlogOwner, blogCont.removeOwnerFromBlog);
+router.patch(
+  "/:blog/owners",
+  verifyToken,
+  isBlogOwner,
+  blogCont.removeOwnerFromBlog
+);
 
 router.post("/", verifyToken, blogCont.createBlog);
 router.put("/:blog", verifyToken, isBlogOwner, blogCont.updateBlog);
 router.delete("/:blog", verifyToken, isBlogOwner, blogCont.deleteBlog);
 
-router.patch("/:blog/stories/:story/publish", verifyToken, isBlogOwner, isStoryOwner, storyCont.publishStory)
-
+router.patch(
+  "/:blog/stories/:story/publish",
+  verifyToken,
+  isBlogOwner,
+  isStoryOwner,
+  storyCont.publishStory
+);
 
 module.exports = router;
