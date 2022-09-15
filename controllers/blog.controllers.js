@@ -32,94 +32,116 @@ const getBlogs = async (req, res) => {
 
 const getBlog = async (req, res) => {
   try {
-    const blog = await blogModel.aggregate([
-      {
-        $match: { _id: mongoose.Types.ObjectId(req.params.blog) },
-      },
-      {
-        $lookup: {
-          from: "users",
-          let: { owners: "$owners" },
-          pipeline: [
-            {
-              $match: {
-                $expr: {
-                  $in: ["$_id", "$$owners"],
-                },
-              },
-            },
-            {
-              $project: {
-                _id: 1,
-                firstName: 1,
-                lastName: 1,
-                email: 1,
-                username: 1,
-              },
-            },
-          ],
-          as: "owners",
+    let blog = null;
+    if (req.verifiedUser) {
+      blog = await blogModel.aggregate([
+        {
+          $match: { _id: mongoose.Types.ObjectId(req.params.blog) },
         },
-      },
-      {
-        $addFields: {
-          isOwner: {
-            $in: [mongoose.Types.ObjectId(req.verifiedUser._id), "$owners._id"],
-          },
-        },
-      },
-      {
-        $lookup: {
-          from: "follows",
-          let: { blogId: "$_id" },
-          pipeline: [
-            {
-              $match: {
-                $expr: {
-                  $and: [
-                    {
-                      $eq: [
-                        "$follower",
-                        mongoose.Types.ObjectId(req.verifiedUser._id),
-                      ],
-                    },
-                    { $eq: ["$following.entity", "$$blogId"] },
-                    { $eq: ["$following.model", "Blog"] },
-                  ],
-                },
-              },
-            },
-          ],
-          as: "followers",
-        },
-      },
-      {
-        $addFields: {
-          followers: { $size: "$followers" },
-        },
-      },
-      {
-        $addFields: {
-          canFollow: {
-            $switch: {
-              branches: [
-                {
-                  case: {
-                    $eq: ["$isOwner", true],
+        {
+          $lookup: {
+            from: "users",
+            let: { owners: "$owners" },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $in: ["$_id", "$$owners"],
                   },
-                  then: false,
                 },
+              },
+              {
+                $project: {
+                  _id: 1,
+                  firstName: 1,
+                  lastName: 1,
+                  email: 1,
+                  username: 1,
+                },
+              },
+            ],
+            as: "owners",
+          },
+        },
+        {
+          $addFields: {
+            isOwner: {
+              $in: [
+                mongoose.Types.ObjectId(req.verifiedUser._id),
+                "$owners._id",
               ],
-              default: { $not: [{ $toBool: "$followers" }] },
             },
           },
         },
-      },
-      {
-        $unset: ["followers", "isOwner"],
-      },
-    ]);
-
+        {
+          $lookup: {
+            from: "follows",
+            let: { blogId: "$_id" },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $and: [
+                      {
+                        $eq: [
+                          "$follower",
+                          mongoose.Types.ObjectId(req.verifiedUser._id),
+                        ],
+                      },
+                      { $eq: ["$following.entity", "$$blogId"] },
+                      { $eq: ["$following.model", "Blog"] },
+                    ],
+                  },
+                },
+              },
+            ],
+            as: "followers",
+          },
+        },
+        {
+          $addFields: {
+            followers: { $size: "$followers" },
+          },
+        },
+        {
+          $addFields: {
+            canFollow: {
+              $switch: {
+                branches: [
+                  {
+                    case: {
+                      $eq: ["$isOwner", true],
+                    },
+                    then: false,
+                  },
+                ],
+                default: { $not: [{ $toBool: "$followers" }] },
+              },
+            },
+          },
+        },
+        {
+          $unset: ["followers", "isOwner"],
+        },
+      ]);
+    } else {
+      blog = await blogModel.aggregate([
+        {
+          $match: { _id: mongoose.Types.ObjectId(req.params.blog) },
+        },
+        {
+          $lookup: {
+            from: "users",
+            localField: "owners",
+            foreignField: "_id",
+            as: "owners",
+          },
+        },
+        {
+          $unset: "owners.password",
+        },
+      ]);
+    }
     return res.status(200).json(blog);
   } catch (err) {
     return res.status(500).json(err);
