@@ -9,8 +9,12 @@ const compression = require("compression");
 
 // DB connection
 mongoose.connect(process.env.MONGODB_URL);
-mongoose.connection.on("connected", () => {console.log("Connection with db good")});
-mongoose.connection.on("error", (err) => {console.log("Connection with db failed", err)});
+mongoose.connection.on("connected", () => {
+  console.log("Connection with db good");
+});
+mongoose.connection.on("error", (err) => {
+  console.log("Connection with db failed", err);
+});
 
 // import routes
 const routerAuth = require("./routes/auth.routes");
@@ -21,6 +25,7 @@ const routerStory = require("./routes/story.routes");
 const routerReaction = require("./routes/reaction.routes");
 const routerFollow = require("./routes/follow.routes");
 const routerComment = require("./routes/comment.routes");
+const routerFeed = require("./routes/bookmarked.routes");
 
 // middleware
 app.use(express.json());
@@ -38,10 +43,11 @@ app.use("/api/stories", routerStory);
 app.use("/api/reactions", routerReaction);
 app.use("/api/follows", routerFollow);
 app.use("/api/comments", routerComment);
+app.use("/api/feed", routerFeed);
 
 // server listening
 const port = 8000;
 
-app.listen(port,() => {
-    console.log("Connection done with the server");
-})
+app.listen(port, () => {
+  console.log("Connection done with the server");
+});
