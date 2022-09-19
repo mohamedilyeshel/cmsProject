@@ -28,7 +28,45 @@ const getStories = async (req, res) => {
 
 const getStory = async (req, res) => {
   try {
-    const story = await storyModel.aggregate([
+    const isDraft = req.story.isDraft;
+    let story;
+    if (isDraft) {
+      story = await storyModel.aggregate([
+        {
+          $match: {
+            _id: mongoose.Types.ObjectId(req.story._id),
+          },
+        },
+        {
+          $lookup: {
+            from: "users",
+            localField: "author",
+            foreignField: "_id",
+            as: "author",
+          },
+        },
+        {
+          $project: {
+            "author.password": 0,
+          },
+        },
+        {
+          $unwind: { path: "$author" },
+        },
+        {
+          $lookup: {
+            from: "tags",
+            localField: "tags",
+            foreignField: "_id",
+            as: "tags",
+          },
+        },
+      ]);
+
+      return res.status(200).json(story);
+    }
+
+    story = await storyModel.aggregate([
       {
         $match: { _id: mongoose.Types.ObjectId(req.story._id) },
       },
@@ -83,7 +121,11 @@ const getStory = async (req, res) => {
 const deleteStory = async (req, res) => {
   const id = req.story._id;
   try {
-    const story = await storyModel.findByIdAndDelete(id);
+    console.log(req.story);
+
+    const story = await storyModel.findOneAndDelete({
+      _id: mongoose.Types.ObjectId(id),
+    });
     return res.status(200).json(story);
   } catch (err) {
     return res.status(500).json(err);
@@ -117,6 +159,7 @@ const publishStory = async (req, res) => {
       },
       {
         new: true,
+        runValidators: true,
       }
     );
     return res.status(200).json(story);

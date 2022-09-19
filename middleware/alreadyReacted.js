@@ -4,6 +4,7 @@ module.exports = async (req, res, next) => {
     const reactionExist = await reactionModel.findOne({
       emoji: req.body.emoji.trim().toLowerCase(),
       user: req.verifiedUser._id,
+      story: req.story._id,
     });
 
     if (reactionExist) {
