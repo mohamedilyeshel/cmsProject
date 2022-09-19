@@ -7,8 +7,13 @@ const {
 const commentModel = require("../models/comment.models");
 const isStoryOwner = require("../middleware/isStoryOwner");
 const verifyToken = require("../middleware/verifyToken");
+const alreadyReacted = require("../middleware/alreadyReacted");
 const storyModel = require("../models/story.models");
 const isCommentOwner = require("../middleware/isCommentOwner");
+const {
+  getReactions,
+  createReaction,
+} = require("../controllers/reaction.controllers");
 const router = require("express").Router();
 
 router.param("story", async (req, res, next, id) => {
@@ -70,5 +75,8 @@ router.delete(
 
 router.post("/:story/bookmark", verifyToken, bookMarkStory);
 router.delete("/:story/unbookmark", verifyToken, unbookMarkStory);
+
+router.get("/:story/reactions", getReactions);
+router.post("/:story/react", verifyToken, alreadyReacted, createReaction);
 
 module.exports = router;
