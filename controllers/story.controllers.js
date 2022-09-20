@@ -66,6 +66,9 @@ const getStory = async (req, res) => {
       return res.status(200).json(story);
     }
 
+    // increament the number of viewers fields each time a nonDraft story got requested
+    await req.story.updateOne({ $inc: { viewers: 1 } });
+
     story = await storyModel.aggregate([
       {
         $match: { _id: mongoose.Types.ObjectId(req.story._id) },
@@ -105,8 +108,22 @@ const getStory = async (req, res) => {
       {
         $lookup: {
           from: "reactions",
-          localField: "_id",
-          foreignField: "story",
+          let: { storyId: "$_id" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $eq: ["$story", "$$storyId"],
+                },
+              },
+            },
+            {
+              $group: {
+                _id: "$emoji",
+                count: { $sum: 1 },
+              },
+            },
+          ],
           as: "reactions",
         },
       },

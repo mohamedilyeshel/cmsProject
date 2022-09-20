@@ -20,6 +20,10 @@ const StorySchema = new mongoose.Schema(
     author: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     blog: { type: mongoose.Schema.Types.ObjectId, ref: "Blog" },
     isDraft: { type: Boolean, default: true },
+    viewers: {
+      type: Number,
+      default: 0,
+    },
   },
   { timestamps: true }
 );
