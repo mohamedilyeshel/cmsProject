@@ -2,7 +2,11 @@ const userModel = require("../models/user.models");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const isEmail = require("validator/lib/isEmail");
-const { transporter } = require("../utils/nodemailer");
+const { emailQueue } = require("../queues/emailQueue");
+const {
+  REGISTER_NEW_USER,
+  FORGOT_PASSWORD_JOB,
+} = require("../constants/constants");
 require("dotenv").config();
 
 const Login = async (req, res) => {
@@ -22,6 +26,7 @@ const Login = async (req, res) => {
       req.body.password,
       existUser.password
     );
+
     if (!verifiedPassword) {
       return res.status(422).json("Wrong Password!");
     }
@@ -58,37 +63,7 @@ const Register = async (req, res) => {
       return res.status(422).json("username exist!");
     }
 
-    const salt = await bcrypt.genSalt(16);
-    const hashPass = await bcrypt.hash(req.body.password, salt);
-
-    const newUser = new userModel({
-      firstName: req.body.firstName,
-      lastName: req.body.lastName,
-      username: req.body.username,
-      email: req.body.email,
-      password: hashPass,
-    });
-
-    const saveUser = await newUser.save();
-
-    const token = jwt.sign(
-      {
-        id: saveUser._id,
-        email: saveUser.email,
-        username: saveUser.username,
-      },
-      process.env.VERIFY_EMAIL_TOKEN_PASS,
-      { expiresIn: "1h" }
-    );
-
-    const msg = {
-      from: process.env.TRANSPORTER_EMAIL, // sender address
-      to: saveUser.email, // list of receivers
-      subject: "Verify Account ✔", // Subject line
-      text: `Here is your token to verify the account : ${token}`, // plain text body
-    };
-
-    await transporter.sendMail(msg);
+    await emailQueue.add(REGISTER_NEW_USER, req.body);
 
     return res.status(202).json("Account is created with no problems");
   } catch (err) {
@@ -125,31 +100,7 @@ module.exports.forgotPassword = async (req, res) => {
       return res.status(400).json("An email should be entered");
     }
 
-    const existUser = await userModel.findOne(
-      { email: req.body.email },
-      { password: 0 }
-    );
-
-    if (existUser) {
-      const token = jwt.sign(
-        {
-          id: existUser._id,
-          email: existUser.email,
-          username: existUser.username,
-        },
-        process.env.FORGOT_EMAIL_TOKEN_PASS,
-        { expiresIn: "1h" }
-      );
-
-      const msg = {
-        from: process.env.TRANSPORTER_EMAIL, // sender address
-        to: existUser.email, // list of receivers
-        subject: "Reset Password ✔", // Subject line
-        text: `Here is your token to reset the password : ${token}`, // plain text body
-      };
-
-      await transporter.sendMail(msg);
-    }
+    await emailQueue.add(FORGOT_PASSWORD_JOB, req.body);
 
     return res
       .status(200)
@@ -181,7 +132,7 @@ module.exports.resetPassword = async (req, res) => {
       { new: true, runValidators: true }
     );
 
-    return res.status(201).json("New password is added");
+    return res.status(202).json("New password is added");
   } catch (err) {
     return res.status(500).json(err);
   }

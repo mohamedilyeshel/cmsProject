@@ -15,6 +15,9 @@ mongoose.connection.on("connected", () => {
 mongoose.connection.on("error", (err) => {
   console.log("Connection with db failed", err);
 });
+mongoose.connection.on("disconnected", (err) => {
+  console.log("Connection with db failed", err);
+});
 
 // import routes
 const routerAuth = require("./routes/auth.routes");
