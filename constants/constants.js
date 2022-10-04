@@ -2,3 +2,4 @@ module.exports.EMAIL_QUEUE = "EMAIL";
 module.exports.SEND_EMAIL_JOB = "SEND_EMAIL_JOB";
 module.exports.REGISTER_NEW_USER = "REGISTER_NEW_USER";
 module.exports.FORGOT_PASSWORD_JOB = "FORGOT_PASSWORD_JOB";
+module.exports.RESET_PASSWORD = "RESET_PASSWORD";

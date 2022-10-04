@@ -6,6 +6,7 @@ const { emailQueue } = require("../queues/emailQueue");
 const {
   REGISTER_NEW_USER,
   FORGOT_PASSWORD_JOB,
+  RESET_PASSWORD,
 } = require("../constants/constants");
 require("dotenv").config();
 
@@ -19,7 +20,7 @@ const Login = async (req, res) => {
     }
 
     if (!existUser) {
-      return res.status(401).json("User not found");
+      return res.status(401).json("Wrong Email/Password");
     }
 
     const verifiedPassword = await bcrypt.compare(
@@ -28,7 +29,7 @@ const Login = async (req, res) => {
     );
 
     if (!verifiedPassword) {
-      return res.status(422).json("Wrong Password!");
+      return res.status(401).json("Wrong Email/Password");
     }
 
     const token = jwt.sign(
@@ -65,7 +66,11 @@ const Register = async (req, res) => {
 
     await emailQueue.add(REGISTER_NEW_USER, req.body);
 
-    return res.status(202).json("Account is created with no problems");
+    return res
+      .status(202)
+      .json(
+        "Account is created check your email to verify the account and login"
+      );
   } catch (err) {
     return res.status(500).json(err);
   }
@@ -113,24 +118,27 @@ module.exports.forgotPassword = async (req, res) => {
 };
 
 module.exports.resetPassword = async (req, res) => {
+  let verifyToken;
   try {
     if (!req.body.token || !req.body.password) {
-      return res.status(400).json("Token or password not valid");
+      return res.status(400).json("Token or password not sended");
     }
 
-    const verifyToken = jwt.verify(
+    verifyToken = jwt.verify(
       req.body.token,
       process.env.FORGOT_EMAIL_TOKEN_PASS
     );
+  } catch (err) {
+    return res.status(403).json("Invalid Token");
+  }
 
-    const salt = await bcrypt.genSalt(16);
-    const hashedNewPass = await bcrypt.hash(req.body.password, salt);
+  try {
+    const infos = {
+      id: verifyToken.id,
+      password: req.body.password,
+    };
 
-    await userModel.findByIdAndUpdate(
-      verifyToken.id,
-      { password: hashedNewPass },
-      { new: true, runValidators: true }
-    );
+    await emailQueue.add(RESET_PASSWORD, infos);
 
     return res.status(202).json("New password is added");
   } catch (err) {
