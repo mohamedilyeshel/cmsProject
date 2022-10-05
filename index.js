@@ -33,7 +33,9 @@ const routerFeed = require("./routes/bookmarked.routes");
 // middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(morgan("dev"));
+if (process.env.NODE_ENV === "development") {
+  app.use(morgan("dev"));
+}
 app.use(helmet());
 app.use(compression());
 

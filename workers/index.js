@@ -11,6 +11,7 @@ const {
   RESET_PASSWORD,
 } = require("../constants/constants");
 const mongoose = require("mongoose");
+require("dotenv").config();
 
 const sendEmailWorker = new Worker(
   EMAIL_QUEUE,
@@ -45,8 +46,8 @@ const sendEmailWorker = new Worker(
   },
   {
     connection: {
-      host: "127.0.0.1",
-      port: 6379,
+      host: process.env.REDIS_HOST,
+      port: process.env.REDIS_PORT,
     },
   }
 );

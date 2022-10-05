@@ -2,6 +2,7 @@ const userModel = require("../models/user.models");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const isEmail = require("validator/lib/isEmail");
+const Redis = require("ioredis");
 const { emailQueue } = require("../queues/emailQueue");
 const {
   REGISTER_NEW_USER,
@@ -9,6 +10,11 @@ const {
   RESET_PASSWORD,
 } = require("../constants/constants");
 require("dotenv").config();
+
+const redis = new Redis({
+  host: process.env.REDIS_HOST,
+  port: process.env.REDIS_PORT,
+});
 
 const Login = async (req, res) => {
   let existUser = null;
@@ -78,17 +84,25 @@ const Register = async (req, res) => {
 
 module.exports.verifyEmail = async (req, res) => {
   try {
-    if (!req.query.token) {
-      return res.status(401).json("Invalid Token");
+    if (!req.query.code) {
+      return res.status(401).json("You need to enter the code");
     }
 
-    const validAccount = jwt.verify(
-      req.query.token,
-      process.env.VERIFY_EMAIL_TOKEN_PASS
-    );
+    // const validAccount = jwt.verify(
+    //   req.query.token,
+    //   process.env.VERIFY_EMAIL_TOKEN_PASS
+    // );
+
+    const validAccount = await redis.get(req.query.code);
+
+    if (!validAccount) {
+      return res.status(403).json("Invalid Code, please request another code");
+    }
+
+    await redis.del(req.query.code);
 
     const userVerified = await userModel.findByIdAndUpdate(
-      validAccount.id,
+      validAccount,
       { isEmailVerified: true },
       { new: true }
     );
@@ -118,23 +132,26 @@ module.exports.forgotPassword = async (req, res) => {
 };
 
 module.exports.resetPassword = async (req, res) => {
-  let verifyToken;
   try {
-    if (!req.body.token || !req.body.password) {
-      return res.status(400).json("Token or password not sended");
+    if (!req.body.code || !req.body.password) {
+      return res.status(400).json("Code or password not sended");
     }
 
-    verifyToken = jwt.verify(
-      req.body.token,
-      process.env.FORGOT_EMAIL_TOKEN_PASS
-    );
-  } catch (err) {
-    return res.status(403).json("Invalid Token");
-  }
+    // verifyToken = jwt.verify(
+    //   req.body.token,
+    //   process.env.FORGOT_EMAIL_TOKEN_PASS
+    // );
 
-  try {
+    const verifyCode = await redis.get(req.body.code);
+
+    if (!verifyCode) {
+      return res.status(403).json("Invalid Code please request another code");
+    }
+
+    await redis.del(req.body.code);
+
     const infos = {
-      id: verifyToken.id,
+      id: verifyCode,
       password: req.body.password,
     };
 
