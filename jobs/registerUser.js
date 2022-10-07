@@ -39,7 +39,7 @@ module.exports.registerAccount = async (req) => {
 
     const code = crypto.randomBytes(3).toString("hex").toUpperCase();
 
-    await redis.set(code, saveUser._id, "EX", 3600);
+    await redis.set(code, saveUser.email, "EX", 3600);
 
     const msg = {
       from: process.env.TRANSPORTER_EMAIL, // sender address

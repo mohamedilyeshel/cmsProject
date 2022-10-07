@@ -6,8 +6,8 @@ module.exports.resetPass = async (infos) => {
     const salt = await bcrypt.genSalt(16);
     const hashedNewPass = await bcrypt.hash(infos.password, salt);
 
-    await userModel.findByIdAndUpdate(
-      infos.id,
+    await userModel.findOneAndUpdate(
+      { email: infos.email },
       { password: hashedNewPass },
       { new: true, runValidators: true }
     );

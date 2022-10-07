@@ -3,6 +3,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const isEmail = require("validator/lib/isEmail");
 const Redis = require("ioredis");
+const crypto = require("crypto");
 const { emailQueue } = require("../queues/emailQueue");
 const {
   REGISTER_NEW_USER,
@@ -44,15 +45,20 @@ const Login = async (req, res) => {
         username: existUser.username,
         email: existUser.email,
         isAdmin: existUser.isAdmin,
+        isEmailVerified: existUser.isEmailVerified,
       },
       process.env.TOKEN_KEY,
       { expiresIn: "2 days" }
     );
 
+    const logId = crypto.randomBytes(5).toString("hex").toUpperCase();
+
+    await redis.set(logId, token, "EX", 3600 * 48);
+
     existUser.lastLogin = Date.now();
     existUser.save();
 
-    return res.status(200).json(token);
+    return res.status(200).json(logId);
   } catch (err) {
     return res.status(500).json(err);
   }
@@ -101,8 +107,8 @@ module.exports.verifyEmail = async (req, res) => {
 
     await redis.del(req.query.code);
 
-    const userVerified = await userModel.findByIdAndUpdate(
-      validAccount,
+    const userVerified = await userModel.findOneAndUpdate(
+      { email: validAccount },
       { isEmailVerified: true },
       { new: true }
     );
@@ -151,13 +157,23 @@ module.exports.resetPassword = async (req, res) => {
     await redis.del(req.body.code);
 
     const infos = {
-      id: verifyCode,
+      email: verifyCode,
       password: req.body.password,
     };
 
     await emailQueue.add(RESET_PASSWORD, infos);
 
     return res.status(202).json("New password is added");
+  } catch (err) {
+    return res.status(500).json(err);
+  }
+};
+
+module.exports.logOut = async (req, res) => {
+  const logId = req.headers.authorization;
+  try {
+    await redis.del(logId);
+    return res.status(200).json("User is logged out");
   } catch (err) {
     return res.status(500).json(err);
   }

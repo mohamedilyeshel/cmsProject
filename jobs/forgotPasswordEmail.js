@@ -31,7 +31,7 @@ module.exports.forgotPasswordJob = async (body) => {
 
       const code = crypto.randomBytes(3).toString("hex").toUpperCase();
 
-      await redis.set(code, existUser._id, "EX", 3600);
+      await redis.set(code, existUser.email, "EX", 3600);
 
       const msg = {
         from: process.env.TRANSPORTER_EMAIL, // sender address
