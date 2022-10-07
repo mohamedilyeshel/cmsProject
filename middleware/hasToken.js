@@ -1,6 +1,6 @@
 module.exports = (req, res, next) => {
-  const token = req.headers.authorization;
-  if (token) {
+  const code = req.headers.authorization;
+  if (code) {
     return next("route");
   }
 
