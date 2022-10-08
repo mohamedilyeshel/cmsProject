@@ -59,8 +59,8 @@ app.use("/api/comments", routerComment);
 app.use("/api/feed", routerFeed);
 
 // server listening
-const port = 8000;
+const port = process.env.PORT || 5000;
 
 app.listen(port, () => {
-  console.log("Connection done with the server");
+  console.log("Connection done with the server", port, process.env.NODE_ENV);
 });
