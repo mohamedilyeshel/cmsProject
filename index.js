@@ -5,6 +5,10 @@ const mongoose = require("mongoose");
 require("dotenv").config();
 const morgan = require("morgan");
 const helmet = require("helmet");
+const sanitize = require("express-mongo-sanitize");
+const xss = require("xss-clean");
+const hpp = require("hpp");
+const cors = require("cors");
 const compression = require("compression");
 
 // DB connection
@@ -37,6 +41,10 @@ if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
 }
 app.use(helmet());
+app.use(sanitize());
+app.use(xss());
+app.use(hpp());
+app.use(cors());
 app.use(compression());
 
 // routes middleware
